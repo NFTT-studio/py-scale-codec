@@ -307,9 +307,12 @@ class EventsDecoder(Vec):
         element_count = self.process_type('Compact<u32>').value
 
         for i in range(0, element_count):
-            element = self.process_type('EventRecord', metadata=self.metadata)
-            element.value['event_idx'] = i
-            self.elements.append(element)
+            try:
+                element = self.process_type('EventRecord', metadata=self.metadata)
+                element.value['event_idx'] = i
+                self.elements.append(element)
+            except Exception as e:
+                print('[EventsDecoder] error process event record', e)
 
         return [e.value for e in self.elements]
 

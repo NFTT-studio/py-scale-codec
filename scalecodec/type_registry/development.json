@@ -11,6 +11,12 @@
          ["parachains", "AccountId"]
       ]
     },
+    "NFTMetadata": "Vec<u8>",
+    "ClassId": "u32",
+    "ClassIdOf": "ClassId",
+    "GlobalId": "u64",
+    "TokenId": "u64",
+    "TokenIdOf": "TokenId",
     "ContractExecResult": "ContractExecResultTo260",
     "ValidatorPrefs": "ValidatorPrefsWithBlocked",
     "AccountInfo": "AccountInfoWithTripleRefCount"
@@ -19,6 +25,12 @@
     {
       "runtime_range": [0, 259],
       "types": {
+    "NFTMetadata": "Vec<u8>",
+    "ClassId": "u32",
+    "ClassIdOf": "ClassId",
+    "GlobalId": "u64",
+    "TokenId": "u64",
+    "TokenIdOf": "TokenId",
         "Address": "GenericAddress",
         "LookupSource": "GenericAddress",
         "AccountInfo": "AccountInfoWithRefCount",
@@ -28,6 +40,12 @@
     {
       "runtime_range": [260, 264],
       "types": {
+    "NFTMetadata": "Vec<u8>",
+    "ClassId": "u32",
+    "ClassIdOf": "ClassId",
+    "GlobalId": "u64",
+    "TokenId": "u64",
+    "TokenIdOf": "TokenId",
         "Address": "MultiAddress",
         "LookupSource": "MultiAddress",
         "AccountInfo": "AccountInfoWithRefCount",
@@ -37,6 +55,12 @@
     {
       "runtime_range": [265, null],
       "types": {
+    "NFTMetadata": "Vec<u8>",
+    "ClassId": "u32",
+    "ClassIdOf": "ClassId",
+    "GlobalId": "u64",
+    "TokenId": "u64",
+    "TokenIdOf": "TokenId",
         "Address": "MultiAddress",
         "LookupSource": "MultiAddress",
         "AccountInfo": "AccountInfoWithTripleRefCount",

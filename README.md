@@ -17,38 +17,98 @@ https://polkascan.github.io/py-scale-codec/
 pip install scalecodec
 ```
 
-## Examples
+## Examples (MetadataV14 runtimes and higher)
 
-Decode a SCALE-encoded Compact\<Balance\> 
+### Encode a Call
+
+```python
+
+runtime_config = RuntimeConfigurationObject()
+# This types are all hardcoded types needed to decode metadata types
+runtime_config.update_type_registry(load_type_registry_preset(name="metadata_types"))
+
+# Decode retrieved metadata from the RPC
+metadata = runtime_config.create_scale_object(
+    'MetadataVersioned', data=ScaleBytes(response.get('result'))
+)
+metadata.decode()
+
+# Add the embedded type registry to the runtime config
+runtime_config.add_portable_registry(metadata)
+
+call = runtime_config.create_scale_object(
+    "Call", metadata=metadata
+)
+call.encode({
+    "call_module": "Balances",
+    "call_function": "transfer",
+    "call_args": {"dest": "5GNJqTPyNqANBkUVMN1LPPrxXnFouWXoe2wNSmmEoLctxiZY", "value": 3},
+})
+```
+
+### Decode the result of a `state_getStorageAt` RPC call
+
+```python
+event_data = "0x2000000000000000b0338609000000000200000001000000000080b2e60e0000000002000000020000000003be1957935299d0be2f35b8856751feab95fc7089239366b52b72ca98249b94300000020000000500be1957935299d0be2f35b8856751feab95fc7089239366b52b72ca98249b943000264d2823000000000000000000000000000200000005027a9650a6bd43f1e0b4546affb88f8c14213e1fb60512692c2b39fbfcfc56b703be1957935299d0be2f35b8856751feab95fc7089239366b52b72ca98249b943000264d2823000000000000000000000000000200000013060c4c700700000000000000000000000000000200000005047b8441d5110c178c29be709793a41d73ae8b3119a971b18fbd20945ea5d622f00313dc01000000000000000000000000000002000000000010016b0b00000000000000"
+
+system_pallet = metadata.get_metadata_pallet("System")
+event_storage_function = system_pallet.get_storage_function("Events")
+
+event = runtime_config.create_scale_object(
+    event_storage_function.get_value_type_string(), metadata=metadata
+)
+print(event.decode(ScaleBytes(event_data)))
+```
+
+### Retrieve type decomposition information of a `RegistryType`:
+
+```python
+pallet = metadata.get_metadata_pallet("System")
+storage_function = pallet.get_storage_function("BlockHash")
+
+param_type_string = storage_function.get_params_type_string()
+param_type_obj = runtime_config.create_scale_object(param_type_string[0])
+
+type_info = param_type_obj.scale_info_type.retrieve_type_decomposition()
+
+print(type_info) 
+# {'primitive': 'u32'}
+```
+
+
+
+## Examples (prior to MetadataV14)
+
+### Decode a SCALE-encoded Compact\<Balance\> 
 
 ```python
 RuntimeConfiguration().update_type_registry(load_type_registry_preset("default"))
 RuntimeConfiguration().update_type_registry(load_type_registry_preset("kusama"))
-obj = ScaleDecoder.get_decoder_class('Compact<Balance>', ScaleBytes("0x130080cd103d71bc22"))
+obj = RuntimeConfiguration().create_scale_object('Compact<Balance>', data=ScaleBytes("0x130080cd103d71bc22"))
 obj.decode()
 print(obj.value)
 ```
 
-Encode to Compact\<Balance\> 
+### Encode to Compact\<Balance\> 
 
 ```python
 RuntimeConfiguration().update_type_registry(load_type_registry_preset("default"))
-obj = ScaleDecoder.get_decoder_class('Compact<Balance>')
+obj = RuntimeConfiguration().create_scale_object('Compact<Balance>')
 scale_data = obj.encode(2503000000000000000)
 print(scale_data)
 ```
 
-Encode to Vec\<Bytes\>
+### Encode to Vec\<Bytes\>
 
 ```python
 RuntimeConfiguration().update_type_registry(load_type_registry_preset("default"))
 value = ['test', 'vec']
-obj = ScaleDecoder.get_decoder_class('Vec<Bytes>')
+obj = RuntimeConfiguration().create_scale_object('Vec<Bytes>')
 scale_data = obj.encode(value)
 print(scale_data)
 ```
 
-Add custom types to type registry
+### Add custom types to type registry
 
 ```python
 RuntimeConfiguration().update_type_registry(load_type_registry_preset("default"))
@@ -69,7 +129,7 @@ custom_types = {
 RuntimeConfiguration().update_type_registry(custom_types)
 ```
 
-Or from a custom JSON file
+### Or from a custom JSON file
 
 ```python
 RuntimeConfiguration().update_type_registry(load_type_registry_preset("default"))
@@ -92,41 +152,13 @@ runtime_config_polkadot.update_type_registry(load_type_registry_preset("default"
 runtime_config_polkadot.update_type_registry(load_type_registry_preset("polkadot"))
 
 # Decode extrinsic using Kusama runtime configuration
-extrinsic = ScaleDecoder.get_decoder_class(
+extrinsic = runtime_config_kusama.create_scale_object(
     type_string='Extrinsic', 
-    data=ScaleBytes(extrinsic_data),
-    metadata=metadata_decoder, 
-    runtime_config=runtime_config_kusama
+    metadata=metadata_decoder
 )
-extrinsic.decode()
+extrinsic.decode(ScaleBytes(extrinsic_data))
 
-``` 
-
-## Using the type registry updater in your application
-
-To ensure the type registries are in sync with the current runtime of the blockchain, you can use 
-the updater function in your application:
-
-```python
-from scalecodec.updater import update_type_registries
-
-# Update type registries with latest version from Github   
-try:
-    update_type_registries()
-except Exception:
-    pass
 ```
-
-This will overwrite the type registry JSON files with the downloaded lastest versions from Github. In case of write 
-permission restrictions it is also possible to always use the remote version on Github with the `use_remote_preset` kwarg:
-
-```python
-# Polkadot runtime config
-runtime_config_polkadot = RuntimeConfigurationObject()
-runtime_config_polkadot.update_type_registry(load_type_registry_preset("default", use_remote_preset=True))
-runtime_config_polkadot.update_type_registry(load_type_registry_preset("polkadot", use_remote_preset=True))
-```
-
 
 ## License
 https://github.com/polkascan/py-scale-codec/blob/master/LICENSE
